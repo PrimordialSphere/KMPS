@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .network {
+ 
+  display:block;
+  width:1600px;
+  height:800px;
+  border:1px solid;
+  background-color:white;
+  }
+    </style>
+    <script type="application/javascript" src="vis-4.21.0/dist/vis.min.js"></script>
+    <link href="vis-4.21.0/dist/vis.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+    <div class="network">Network Graph</div>
+    <script type="application/javascript">
+        class Rectangle {
+            constructor(length, width) {
+                this.length = length;
+                this.width = width;
+            }
+            getArea() {
+                return this.length * this.width;
+            }
+            toString() {
+                return "[Rectangle " + this.length + "x" + this.width + "]";
+            }
+        }
+
+        var rect = new Rectangle(5, 10);
+
+        class Square extends Rectangle {
+            constructor(size) {
+                super(size, size);
+            }
+            toString() {
+                return "[Square " + this.length + "x" + this.width + "]";
+            }
+        }
+
+        var square = new Square(6);
+
+        rect.my_name = "rect";
+        square.my_name = "square";
+
+        var objs = [rect, square];
+
+        var arrayOfColors = ["#F5F5F5", "#DCDCDC", "	#D3D3D3", "#C0C0C0", "#BEBEBE", "#A9A9A9", "#808080", "#708090", "#778899", "#7D9EC0", "#1C86EE", "#1E90FF"];
+
+
+        var nodes = new vis.DataSet();
+        var edges = new vis.DataSet();
+
+
+        console.log(objs);
+
+
+
+        function visualisiere(objs_list) {
+            var objsListLength = objs_list.length;
+            for (var i = 0; i < objsListLength; i++) {
+                theCurrentMainId = (i + 1) * 10;
+                nodes.add({
+                    id: objs_list[i].my_name,
+                    label: objs_list[i].my_name,
+                    color: {
+                        background: arrayOfColors[0]
+                    }
+                });
+                var myObjectMethods = Object.getOwnPropertyNames(objs_list[i]);
+               // console.log(myObjectMethods);
+                var myObjectMethosLength = myObjectMethods.length;
+
+                for (var j = 0; j < myObjectMethosLength; j++) {
+                    var theCurrentId = (i * 10 + j + 1);
+                    nodes.add({
+                        id: theCurrentId,
+                        label: myObjectMethods[j]
+                    });
+                    edges.add({
+                        from: objs_list[i].my_name,
+                        to: theCurrentId,
+
+                    });
+                }
+
+
+                console.log(objs_list[i].__proto__);
+                //console.log(Object.getPrototypeOf(objs_list[i]).constructor);
+
+
+        
+                if (objs_list[i].__proto__ != null) {
+                    recursiveGetPrototype(objs_list[i].__proto__, objs_list[i].my_name, theCurrentMainId, 1);
+                }
+            }
+        }
+
+        
+       
+
+
+
+        function recursiveGetPrototype(obj, idOfLastElement, indexOfLastEelemnt, colorCode) {
+            var theCurrentMainId = indexOfLastEelemnt * 10 + 1;
+            var myObjectName;
+            if (obj.name == "") {
+                myObjectName = "Object"
+            } else {
+                myObjectName = obj.constructor.name;
+            }
+            if (nodes.get(myObjectName) == null) {
+                nodes.add({
+                    id: myObjectName,
+                    label: myObjectName,
+                    color: {
+                        background: arrayOfColors[colorCode]
+                    }
+
+                });
+
+                edges.add({
+                    from: idOfLastElement,
+                    to: myObjectName,
+                    arrows: "from"
+                });
+
+                var myObjectMethods = Object.getOwnPropertyNames(obj);
+                //console.log(myObjectMethods);
+                var myObjectMethosLength = myObjectMethods.length;
+
+                for (var j = 0; j < myObjectMethosLength; j++) {
+                    if (myObjectMethods[j] != "constructor") {
+                        var theCurrentId = (theCurrentMainId * 10 + j + 1);
+                        var labelString = myObjectMethods[j];
+                        nodes.add({
+                            id: theCurrentId,
+                            label: myObjectMethods[j] 
+                        });
+                        edges.add({
+                            from: myObjectName,
+                            to: theCurrentId,
+
+                        });
+                    }
+                }
+            } else {
+                edges.add({
+                    from: idOfLastElement,
+                    to: myObjectName,
+                    arrows: "from"
+                });
+            }
+
+            if (obj.__proto__ != null) {
+                recursiveGetPrototype(obj.__proto__, myObjectName, theCurrentMainId, colorCode + 1);
+            }
+
+        }
+
+        visualisiere(objs);
+        //console.log(nodes.get(4));
+
+
+
+
+        var options = {};
+        var data = {
+            nodes: nodes,
+            edges: edges,
+        };
+        var container = document.querySelector('.network');
+        network = new vis.Network(container, data, options);
+    </script>
+</body>
+
+</html>
